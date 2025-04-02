@@ -101,7 +101,8 @@ export default function NotificationsPage() {
       time: getRandomTime(),
       thumbnail: video.thumbnail,
       url: `/video/${video.id}`,
-      timestamp: video.timestamp
+      timestamp: video.timestamp,
+      profilePhoto: PROFILE_IMAGE_URL // Add the profile photo field
     }));
 
     // Sort by timestamp (newest first)
@@ -222,7 +223,7 @@ export default function NotificationsPage() {
                   {/* Profile Photo */}
                   <div className="relative h-10 w-10 rounded-full overflow-hidden flex-shrink-0 mr-4">
                     <Image
-                      src={PROFILE_IMAGE_URL}
+                      src={notification.profilePhoto}
                       alt="Channel Profile"
                       fill
                       className="object-cover"

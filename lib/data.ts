@@ -1,16 +1,17 @@
 export interface Video {
-  id: string;
+  id: string | number;
   title: string;
   thumbnail: string;
   description: string;
-  views: number;
+  views: number | string;
   uploader: string;
   uploadDate: string;
-  likes: number;
+  likes: number | string;
   url: string;
   platform: string;
   category: string;
-  comments: number;
+  comments: number | string;
+  duration?: string; // Optional duration property
 }
 
 export const videos: Video[] = [

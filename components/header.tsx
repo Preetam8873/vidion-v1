@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
 import { motion, AnimatePresence } from 'framer-motion'
+import VoiceSearchButton from '@/components/voice-search-button'
 
 interface HeaderProps {
   onSearch: (query: string) => Promise<void>
@@ -138,37 +139,43 @@ function Header({ onSearch, isHomePage = false }: HeaderProps) {
     <div ref={searchContainerRef}>
       {isSearchOpen ? (
         <div className="fixed inset-x-0 top-0 px-4 py-3 bg-background/80 backdrop-blur-md z-50 border-b">
-          <form onSubmit={handleSearchSubmit} className="flex items-center gap-2">
+          <form onSubmit={handleSearchSubmit} className="relative flex items-center w-full">
             <div className="relative flex-1">
               <Input
                 type="search"
                 placeholder={isHomePage ? "Search videos..." : "Press enter to search..."}
                 value={searchQuery}
                 onChange={handleSearchChange}
-                className="w-full pr-8"
+                className="w-full h-10 pl-4 pr-24 rounded-full border border-input bg-background focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none dark:bg-secondary/50"
                 autoFocus
                 disabled={isLoading}
               />
-              {isLoading && (
-                <div className="absolute right-2 top-1/2 -translate-y-1/2">
-                  <div className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                </div>
-              )}
+              <div className="absolute right-0 top-0 h-full flex items-center gap-1 px-2">
+                <VoiceSearchButton
+                  onResult={setSearchQuery}
+                  onListening={(listening) => {
+                    if (!listening && searchQuery) {
+                      handleSearchSubmit(new Event('submit') as any)
+                    }
+                  }}
+                  className="hover:bg-accent rounded-full"
+                />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  type="button"
+                  onClick={() => {
+                    setIsSearchOpen(false)
+                    setSearchQuery("")
+                    setError(null)
+                    onSearch("") // Clear search results
+                  }}
+                  className="rounded-full hover:bg-accent"
+                >
+                  <X className="h-5 w-5" />
+                </Button>
+              </div>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              type="button"
-              onClick={() => {
-                setIsSearchOpen(false)
-                setSearchQuery("")
-                setError(null)
-                onSearch("") // Clear search results
-              }}
-              className="flex-shrink-0"
-            >
-              <X className="h-5 w-5" />
-            </Button>
           </form>
           {error && (
             <div className="mt-2 text-sm text-destructive text-center">
@@ -181,7 +188,7 @@ function Header({ onSearch, isHomePage = false }: HeaderProps) {
           variant="ghost"
           size="icon"
           onClick={() => setIsSearchOpen(true)}
-          className="relative"
+          className="relative rounded-full hover:bg-accent"
         >
           <Search className="h-5 w-5" />
           {searchQuery && (
@@ -196,24 +203,42 @@ function Header({ onSearch, isHomePage = false }: HeaderProps) {
 
   // Update the desktop search section
   const desktopSearch = (
-    <form onSubmit={handleSearchSubmit} className="hidden md:flex flex-1 max-w-xl mx-4">
-      <div className="relative w-full">
-        <Input
-          type="search"
-          placeholder={isHomePage ? "Search videos..." : "Press enter to search..."}
-          value={searchQuery}
-          onChange={handleSearchChange}
-          className="w-full pl-10 pr-4 py-2"
-          disabled={isLoading}
-        />
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        {isLoading && (
-          <div className="absolute right-2 top-1/2 -translate-y-1/2">
-            <div className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-          </div>
-        )}
-      </div>
-    </form>
+    <div className="flex items-center gap-2 flex-1 max-w-[600px] mx-4">
+      <form onSubmit={handleSearchSubmit} className="relative flex-1">
+        <div className="relative group">
+          <Input
+            type="search"
+            placeholder={isHomePage ? "Search videos..." : "Press enter to search..."}
+            value={searchQuery}
+            onChange={handleSearchChange}
+            className="w-full h-11 pl-4 pr-12 rounded-lg border-2 border-input bg-background/80 backdrop-blur-sm focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary transition-all duration-200 dark:bg-secondary/30"
+            disabled={isLoading}
+          />
+          <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-primary/5 to-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none" />
+          <button 
+            type="submit" 
+            className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-muted-foreground hover:text-primary transition-colors"
+          >
+            <Search className="h-5 w-5" />
+          </button>
+        </div>
+      </form>
+      <VoiceSearchButton
+        onResult={(transcript) => {
+          setSearchQuery(transcript);
+          // Automatically submit search when voice input is complete
+          if (transcript) {
+            handleSearchSubmit(new Event('submit') as any);
+          }
+        }}
+        onListening={(listening) => {
+          if (!listening && searchQuery) {
+            handleSearchSubmit(new Event('submit') as any);
+          }
+        }}
+        className="hover:bg-accent rounded-lg h-11 w-11 flex items-center justify-center"
+      />
+    </div>
   )
 
   const handleLogoClick = (e: React.MouseEvent) => {
@@ -1124,58 +1149,119 @@ function Header({ onSearch, isHomePage = false }: HeaderProps) {
           </Link>
 
           {/* Desktop Search */}
-          {!isMobile && desktopSearch}
+          {!isMobile && (
+            <div className="flex items-center gap-2 flex-1 max-w-[600px] mx-4">
+              <form onSubmit={handleSearchSubmit} className="relative flex-1">
+                <div className="relative group">
+                  <Input
+                    type="search"
+                    placeholder={isHomePage ? "Search videos..." : "Press enter to search..."}
+                    value={searchQuery}
+                    onChange={handleSearchChange}
+                    className="w-full h-11 pl-4 pr-12 rounded-lg border-2 border-input bg-background/80 backdrop-blur-sm focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary transition-all duration-200 dark:bg-secondary/30"
+                    disabled={isLoading}
+                  />
+                  <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-primary/5 to-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none" />
+                  <button 
+                    type="submit" 
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    <Search className="h-5 w-5" />
+                  </button>
+                </div>
+              </form>
+              <VoiceSearchButton
+                onResult={(transcript) => {
+                  setSearchQuery(transcript);
+                  // Automatically submit search when voice input is complete
+                  if (transcript) {
+                    handleSearchSubmit(new Event('submit') as any);
+                  }
+                }}
+                onListening={(listening) => {
+                  if (!listening && searchQuery) {
+                    handleSearchSubmit(new Event('submit') as any);
+                  }
+                }}
+                className="hover:bg-accent rounded-lg h-11 w-11 flex items-center justify-center"
+              />
+            </div>
+          )}
 
-          {/* Mobile Icons */}
-          {isMobile ? (
+          {/* Mobile Search */}
+          {isMobile && (
             <div className="flex items-center gap-2">
-              {/* Search Icon and Input */}
               <div ref={searchContainerRef}>
                 {isSearchOpen ? (
-                  <div className="fixed inset-x-0 top-0 px-4 py-3 bg-background/80 backdrop-blur-md z-50">
-                    <form onSubmit={handleSearchSubmit} className="flex items-center gap-2">
-                      <div className="relative flex-1">
+                  <div className="fixed inset-x-0 top-0 px-4 py-3 bg-background/95 backdrop-blur-md z-50 border-b border-border/40">
+                    <form onSubmit={handleSearchSubmit} className="relative flex items-center w-full">
+                      <div className="relative flex-1 group">
                         <Input
                           type="search"
                           placeholder={isHomePage ? "Search videos..." : "Press enter to search..."}
                           value={searchQuery}
                           onChange={handleSearchChange}
-                          className="w-full pr-8"
+                          className="w-full h-11 pl-4 pr-12 rounded-lg border-2 border-input bg-background/80 backdrop-blur-sm focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary transition-all duration-200 dark:bg-secondary/30"
                           autoFocus
                           disabled={isLoading}
                         />
-                        {isLoading && (
-                          <div className="absolute right-2 top-1/2 -translate-y-1/2">
-                            <div className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                          </div>
-                        )}
+                        <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-primary/5 to-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none" />
+                        <button 
+                          type="submit" 
+                          className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-muted-foreground hover:text-primary transition-colors"
+                        >
+                          <Search className="h-5 w-5" />
+                        </button>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        type="button"
-                        onClick={() => {
-                          setIsSearchOpen(false)
-                          setSearchQuery("")
-                          setError(null)
-                        }}
-                        className="flex-shrink-0"
-                      >
-                        <X className="h-5 w-5" />
-                      </Button>
                     </form>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      type="button"
+                      onClick={() => {
+                        setIsSearchOpen(false)
+                        setSearchQuery("")
+                        setError(null)
+                      }}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 rounded-lg hover:bg-accent"
+                    >
+                      <X className="h-5 w-5" />
+                    </Button>
                   </div>
                 ) : (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setIsSearchOpen(true)}
-                  >
-                    <Search className="h-5 w-5" />
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setIsSearchOpen(true)}
+                      className="rounded-lg hover:bg-accent"
+                    >
+                      <Search className="h-5 w-5" />
+                    </Button>
+                    <VoiceSearchButton
+                      onResult={(transcript) => {
+                        setSearchQuery(transcript);
+                        // Automatically submit search when voice input is complete
+                        if (transcript) {
+                          handleSearchSubmit(new Event('submit') as any);
+                        }
+                      }}
+                      onListening={(listening) => {
+                        if (!listening && searchQuery) {
+                          handleSearchSubmit(new Event('submit') as any);
+                        }
+                      }}
+                      className="hover:bg-accent rounded-lg h-10 w-10 flex items-center justify-center"
+                    />
+                  </div>
                 )}
               </div>
+            </div>
+          )}
 
+          {/* Mobile Icons */}
+          {isMobile ? (
+            <div className="flex items-center gap-2">
               {/* Profile Button - Only show when search is not open */}
               {!isSearchOpen && (
                 <Sheet>

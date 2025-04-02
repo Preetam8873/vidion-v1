@@ -19,11 +19,6 @@ export default function VideoPage({ params }: { params: Promise<{ id: string }> 
     notFound()
   }
 
-  // Get related videos (excluding current video)
-  const relatedVideos = videos
-    .filter(v => String(v.id) !== resolvedParams.id)
-    .slice(0, 10) // Limit to 10 related videos
-
   const handleSearch = async (query: string) => {
     if (query.trim()) {
       // Store the search query in localStorage before redirecting
@@ -37,14 +32,16 @@ export default function VideoPage({ params }: { params: Promise<{ id: string }> 
   return (
     <>
       <Header onSearch={handleSearch} />
-      <main className="container mx-auto px-4 py-6 md:py-10">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
-            <VideoPlayer video={video} />
-            <VideoInfo video={video} />
+      <main className="max-w-[1920px] mx-auto">
+        <div className="flex flex-col lg:flex-row">
+          <div className="flex-1 min-w-0 p-4 lg:p-6">
+            <div className="max-w-[1400px] mx-auto">
+              <VideoPlayer video={video} />
+              <VideoInfo video={video} />
+            </div>
           </div>
-          <div className="lg:col-span-1">
-            <RelatedVideos currentVideo={video} videos={relatedVideos} />
+          <div className="w-full lg:w-[400px] xl:w-[480px] p-4 lg:py-6 lg:pr-6 lg:pl-0">
+            <RelatedVideos currentVideo={video} allVideos={videos} />
           </div>
         </div>
       </main>

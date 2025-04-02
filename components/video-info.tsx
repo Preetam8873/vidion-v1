@@ -8,9 +8,10 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import ShareModal from "./share-modal"
 import confetti from 'canvas-confetti'
+import { Video } from "@/lib/data"
 
-export default function VideoInfo({ video }) {
-  const [likes, setLikes] = useState(Number.parseInt(video.likes) || 0)
+export default function VideoInfo({ video }: { video: Video }) {
+  const [likes, setLikes] = useState(typeof video.likes === 'string' ? Number.parseInt(video.likes) || 0 : video.likes)
   const [dislikes, setDislikes] = useState(0)
   const [isShareModalOpen, setIsShareModalOpen] = useState(false)
   const [isLiked, setIsLiked] = useState(false)
