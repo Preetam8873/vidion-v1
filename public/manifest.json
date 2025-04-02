@@ -1,0 +1,19 @@
+{
+  "name": "Spectre Hub",
+  "short_name": "Spectre",
+  "icons": [
+    {
+      "src": "/icon.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "/apple-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ],
+  "theme_color": "#6366F1",
+  "background_color": "#ffffff",
+  "display": "standalone"
+} 
